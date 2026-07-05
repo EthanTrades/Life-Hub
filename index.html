@@ -188,11 +188,15 @@ textarea{resize:vertical;width:100%}
         <h2>Log sleep</h2>
         <div class="form-row">
           <div class="field"><label>Date (woke up)</label><input type="date" id="slDate"></div>
-          <div class="field"><label>Hours slept</label><input type="number" id="slHours" step="0.25" min="0" max="24" placeholder="7.5" style="width:110px"></div>
-          <div class="field"><label>Quality</label>
-            <select id="slQual"><option value="5">★★★★★ Great</option><option value="4" selected>★★★★ Good</option><option value="3">★★★ Okay</option><option value="2">★★ Poor</option><option value="1">★ Awful</option></select></div>
+          <div class="field"><label>Bed time</label><input type="time" id="slBed"></div>
+          <div class="field"><label>Wake time</label><input type="time" id="slWake"></div>
+          <div class="field"><label>Hours (auto)</label><input type="number" id="slHours" step="0.25" min="0" max="24" placeholder="auto" style="width:90px"></div>
+          <div class="field"><label>Quality %</label><input type="number" id="slPct" min="0" max="100" placeholder="85" style="width:85px"></div>
+          <div class="field"><label>Deep h</label><input type="number" id="slDeep" step="0.1" min="0" placeholder="1.2" style="width:75px"></div>
+          <div class="field"><label>REM h</label><input type="number" id="slRem" step="0.1" min="0" placeholder="1.5" style="width:75px"></div>
           <button class="btn" onclick="addSleep()">Add</button>
         </div>
+        <div class="sub" style="margin-top:10px">Bed + wake times fill hours automatically. Quality %, deep and REM come from your Sleep Cycle morning summary.</div>
       </div>
       <div class="two-col">
         <div class="card"><h2>Last 14 nights</h2><div id="sleepChart"></div></div>
@@ -325,7 +329,7 @@ textarea{resize:vertical;width:100%}
 
 <script src="life-hub-data.js"></script>
 <script>
-'use strict'; /* Life Hub v1.2 */
+'use strict'; /* Life Hub v1.3 */
 /* ================= Store ================= */
 const DEFAULTS = {sleep:[],steps:[],meals:[],tx:[],bills:[],journal:[],goals:{sleep:8,steps:10000,cal:2200,budget:2500}};
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -374,11 +378,17 @@ document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>
 
 /* ================= Sleep ================= */
 function addSleep(){
-  const date=$('slDate').value, hours=parseFloat($('slHours').value);
-  if(!date || !(hours>0)) return alert('Enter a date and hours slept.');
+  const date=$('slDate').value, bed=$('slBed').value, wake=$('slWake').value;
+  let hours=parseFloat($('slHours').value);
+  if(!(hours>0) && bed && wake){
+    const b=bed.split(':'), w=wake.split(':');
+    let mins=(+w[0]*60 + +w[1]) - (+b[0]*60 + +b[1]); if(mins<=0) mins+=1440;
+    hours=Math.round(mins/60*100)/100;
+  }
+  if(!date || !(hours>0)) return alert('Enter a date plus hours, or bed & wake times.');
   DB.sleep = DB.sleep.filter(s=>s.date!==date);
-  DB.sleep.push({id:uid(),date,hours,quality:+$('slQual').value});
-  save(); $('slHours').value=''; renderAll();
+  DB.sleep.push({id:uid(),date,hours,quality:3,pct:+$('slPct').value||null,bed:bed||null,wake:wake||null,deep:+$('slDeep').value||null,rem:+$('slRem').value||null});
+  save(); ['slHours','slPct','slDeep','slRem'].forEach(i=>$(i).value=''); renderAll();
 }
 function renderSleep(){
   const goal = DB.goals.sleep;
@@ -386,17 +396,29 @@ function renderSleep(){
   const week = DB.sleep.filter(s=>days.includes(s.date));
   const avg = week.length ? week.reduce((a,s)=>a+s.hours,0)/week.length : 0;
   const last = [...DB.sleep].sort((a,b)=>b.date.localeCompare(a.date))[0];
-  const qAvg = week.length ? week.reduce((a,s)=>a+s.quality,0)/week.length : 0;
+  const pctW = week.filter(s=>s.pct);
+  const avgPct = pctW.length ? pctW.reduce((a,s)=>a+s.pct,0)/pctW.length : 0;
+  const debt = week.reduce((a,s)=>a+Math.max(0,goal-s.hours),0);
+  const beds = week.filter(s=>s.bed).map(s=>{const p=s.bed.split(':');let t=+p[0]*60 + +p[1]; if(t<720) t+=1440; return t;});
+  let bedStr='—', devStr='log bed times to track';
+  if(beds.length){
+    const m=beds.reduce((a,b)=>a+b,0)/beds.length;
+    const dev=beds.length>1?Math.sqrt(beds.reduce((a,b)=>a+(b-m)*(b-m),0)/beds.length):0;
+    bedStr=pad(Math.floor(m/60)%24)+':'+pad(Math.round(m%60));
+    devStr=beds.length>1?'± '+Math.round(dev)+' min drift':'avg bedtime';
+  }
   $('sleepStats').innerHTML = `
-    <div class="card stat"><div class="lbl">Last night</div><div class="val accent-violet">${last?last.hours+'<small> hrs</small>':'—'}</div><div class="hint">${last?niceDate(last.date):'no logs yet'}</div></div>
-    <div class="card stat"><div class="lbl">7-day average</div><div class="val">${avg?avg.toFixed(1):'—'}<small> hrs</small></div><div class="hint">goal ${goal} hrs</div></div>
-    <div class="card stat"><div class="lbl">Avg quality</div><div class="val">${qAvg?'★'.repeat(Math.round(qAvg)):'—'}</div><div class="hint">${qAvg?qAvg.toFixed(1)+' / 5':''}</div></div>
-    <div class="card stat"><div class="lbl">Goal met</div><div class="val accent-green">${week.filter(s=>s.hours>=goal).length}<small> / ${week.length||0} nights</small></div><div class="hint">this week</div></div>`;
+    <div class="card stat"><div class="lbl">Last night</div><div class="val accent-violet">${last?last.hours+'<small> hrs</small>'+(last.pct?' <small>· '+last.pct+'%</small>':''):'—'}</div><div class="hint">${last?niceDate(last.date)+(last.bed&&last.wake?' · '+last.bed+' → '+last.wake:''):'no logs yet'}</div></div>
+    <div class="card stat"><div class="lbl">7-day average</div><div class="val">${avg?avg.toFixed(1):'—'}<small> hrs</small></div><div class="hint">goal ${goal} hrs${avgPct?' · quality '+Math.round(avgPct)+'%':''}</div></div>
+    <div class="card stat"><div class="lbl">Sleep debt</div><div class="val ${debt>2?'accent-red':debt>0?'accent-amber':'accent-green'}">${debt?debt.toFixed(1):'0'}<small> hrs</small></div><div class="hint">behind ${goal}h goal this week</div></div>
+    <div class="card stat"><div class="lbl">Bedtime consistency</div><div class="val">${bedStr}</div><div class="hint">${devStr}</div></div>
+    <div class="card stat"><div class="lbl">Deep / REM</div><div class="val">${last&&(last.deep||last.rem)?(last.deep||'–')+'<small>h</small> / '+(last.rem||'–')+'<small>h</small>':'—'}</div><div class="hint">last night's stages</div></div>`;
   const items = lastNDates(14).map(d=>{ const s=DB.sleep.find(x=>x.date===d); return {label:d.slice(8), value:s?s.hours:0}; });
   barChart($('sleepChart'), items, 'var(--violet)', v=>v);
   const logs=[...DB.sleep].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
   $('sleepList').innerHTML = logs.length ? logs.map(s=>`
-    <div class="row"><div class="grow"><div class="t">${s.hours} hrs <span class="pill">${'★'.repeat(s.quality)}</span></div><div class="d">${niceDate(s.date)}</div></div>
+    <div class="row"><div class="grow"><div class="t">${s.hours} hrs${s.pct?' <span class="pill">'+s.pct+'%</span>':''}${(s.deep||s.rem)?' <span class="pill">D '+(s.deep||'–')+'h · R '+(s.rem||'–')+'h</span>':''}</div>
+    <div class="d">${niceDate(s.date)}${s.bed&&s.wake?' · '+s.bed+' → '+s.wake:''}</div></div>
     <button class="del" onclick="delItem('sleep','${s.id}')">✕</button></div>`).join('') : '<div class="empty">No sleep logged yet — add last night above.</div>';
 }
 
@@ -616,7 +638,7 @@ function renderDash(){
       <svg class="ring" width="84" height="84"><circle class="track" cx="42" cy="42" r="34" fill="none" stroke-width="9"/>
       <circle class="prog" cx="42" cy="42" r="34" fill="none" stroke="var(--green)" stroke-width="9" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg>
       <div><div class="lbl">Steps today</div><div class="val accent-green">${steps?fmtN(steps.count):'0'}</div><div class="hint">${Math.round(pct*100)}% of ${fmtN(g.steps)}</div></div></div></div>
-    <div class="card stat"><div class="lbl">Last sleep</div><div class="val accent-violet">${sleep?sleep.hours+'<small> hrs</small>':'—'}</div><div class="hint">${sleep?niceDate(sleep.date):'log your first night'}</div>
+    <div class="card stat"><div class="lbl">Last sleep</div><div class="val accent-violet">${sleep?sleep.hours+'<small> hrs</small>':'—'}</div><div class="hint">${sleep?niceDate(sleep.date)+(sleep.pct?' · '+sleep.pct+'%':''):'log your first night'}</div>
       <div class="pbar"><i style="--c:var(--violet);width:${sleep?Math.min(100,sleep.hours/g.sleep*100):0}%"></i></div></div>
     <div class="card stat"><div class="lbl">Calories today</div><div class="val accent-amber">${fmtN(cal)}<small> / ${fmtN(g.cal)}</small></div>
       <div class="pbar"><i style="--c:${cal>g.cal?'var(--red)':'var(--amber)'};width:${Math.min(100,cal/g.cal*100)}%"></i></div></div>
@@ -661,7 +683,7 @@ function renderAll(){ renderDash(); renderSleep(); renderFitness(); renderNutrit
       DB.steps.push({id:'live_st_'+s.date,date:s.date,count:s.count}); });
     (LIVE.sleep||[]).forEach(s=>{ if(!s.date||!(s.hours>0)) return;
       DB.sleep=DB.sleep.filter(x=>x.date!==s.date);
-      DB.sleep.push({id:'live_sl_'+s.date,date:s.date,hours:s.hours,quality:s.quality||3}); });
+      DB.sleep.push({id:'live_sl_'+s.date,date:s.date,hours:s.hours,quality:s.quality||3,pct:s.pct||null,bed:s.bed||null,wake:s.wake||null,deep:s.deep||null,rem:s.rem||null}); });
     (LIVE.meals||[]).forEach(m=>{ DB.meals=DB.meals.filter(x=>!(String(x.id).indexOf('live_ml_')===0&&x.date===m.date)); });
     (LIVE.meals||[]).forEach((m,i)=>{ if(!m.date||!m.name) return;
       DB.meals.push({id:'live_ml_'+m.date+'_'+i,date:m.date,meal:m.meal||'Snack',name:m.name,cal:m.cal||0,pro:m.pro||0,carb:m.carb||0,fat:m.fat||0}); });
