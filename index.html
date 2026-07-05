@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0D12; --surface:#12151D; --surface2:#181C27; --border:#1F2534;
+  --text:#E7EAF2; --muted:#8A93A8; --faint:#5B6377;
+  --violet:#8B7CF6; --green:#34D399; --amber:#F5A623; --sky:#38BDF8; --pink:#F472B6; --red:#F87171;
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(600px 400px at 15% -10%, rgba(139,124,246,.08), transparent 60%),
+  radial-gradient(700px 500px at 90% 110%, rgba(56,189,248,.06), transparent 60%);pointer-events:none}
+.app{display:flex;min-height:100vh;position:relative}
+/* ---------- Sidebar ---------- */
+.sidebar{width:230px;flex-shrink:0;background:rgba(18,21,29,.7);backdrop-filter:blur(12px);border-right:1px solid var(--border);padding:24px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:10px;padding:0 10px 22px}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--violet),var(--sky));display:grid;place-items:center;font-weight:800;font-size:15px;color:#0B0D12}
+.logo b{font-size:1.05rem;letter-spacing:-.02em}
+.logo span{display:block;font-size:.68rem;color:var(--muted);font-weight:500}
+.nav-btn{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border:none;background:transparent;color:var(--muted);font:inherit;font-weight:500;font-size:.92rem;border-radius:10px;cursor:pointer;transition:.15s;text-align:left}
+.nav-btn:hover{background:var(--surface2);color:var(--text)}
+.nav-btn.active{background:var(--surface2);color:var(--text);box-shadow:inset 2px 0 0 var(--accent, var(--violet))}
+.nav-btn .ico{width:20px;text-align:center;font-size:1rem}
+.sidebar .foot{margin-top:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.tiny-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font:inherit;font-size:.75rem;font-weight:600;padding:7px 10px;border-radius:8px;cursor:pointer;transition:.15s}
+.tiny-btn:hover{color:var(--text);border-color:var(--faint)}
+/* ---------- Main ---------- */
+.main{flex:1;padding:34px 40px 60px;max-width:1120px;margin:0 auto;width:100%}
+.page{display:none;animation:fade .25s ease}
+.page.visible{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+h1{font-size:1.65rem;font-weight:700;letter-spacing:-.03em}
+.sub{color:var(--muted);font-size:.88rem;margin-top:4px}
+h2{font-size:1rem;font-weight:600;margin-bottom:14px;letter-spacing:-.01em}
+/* ---------- Cards & grids ---------- */
+.grid{display:grid;gap:16px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.stat .lbl{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat .val{font-size:1.7rem;font-weight:700;letter-spacing:-.03em;margin-top:6px}
+.stat .val small{font-size:.85rem;color:var(--muted);font-weight:500}
+.stat .hint{font-size:.75rem;color:var(--faint);margin-top:4px}
+.accent-violet{color:var(--violet)} .accent-green{color:var(--green)} .accent-amber{color:var(--amber)} .accent-sky{color:var(--sky)} .accent-pink{color:var(--pink)} .accent-red{color:var(--red)}
+/* ---------- Forms ---------- */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+input,select,textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);font:inherit;font-size:.9rem;padding:9px 12px;border-radius:10px;outline:none;transition:.15s;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--accent,var(--violet))}
+input[type=date]{color-scheme:dark}
+textarea{resize:vertical;width:100%}
+.btn{background:linear-gradient(135deg,var(--violet),var(--sky));border:none;color:#0B0D12;font:inherit;font-weight:700;font-size:.88rem;padding:10px 18px;border-radius:10px;cursor:pointer;transition:.15s}
+.btn:hover{filter:brightness(1.1)}
+.btn.solid{background:var(--surface2);color:var(--text);border:1px solid var(--border);font-weight:600}
+.btn.solid:hover{border-color:var(--faint)}
+/* ---------- Chart ---------- */
+.chart{display:flex;align-items:flex-end;gap:8px;height:150px;margin-top:6px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;min-width:0}
+.chart .bar{width:100%;max-width:44px;border-radius:7px 7px 3px 3px;background:var(--surface2);position:relative;transition:.3s}
+.chart .bar.on{background:linear-gradient(180deg,var(--c,#8B7CF6),color-mix(in srgb,var(--c,#8B7CF6) 45%,transparent))}
+.chart .cl{font-size:.68rem;color:var(--faint);white-space:nowrap}
+.chart .cv{font-size:.7rem;color:var(--muted);font-weight:600;white-space:nowrap}
+/* ---------- Lists ---------- */
+.list{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row .grow{flex:1;min-width:0}
+.row .t{font-weight:600;font-size:.92rem}
+.row .d{font-size:.76rem;color:var(--muted);margin-top:2px}
+.row .amt{font-weight:700;font-size:.95rem;white-space:nowrap}
+.del{background:none;border:none;color:var(--faint);cursor:pointer;font-size:1rem;padding:4px 8px;border-radius:6px;transition:.15s}
+.del:hover{color:var(--red);background:rgba(248,113,113,.1)}
+.pill{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--muted);white-space:nowrap}
+.empty{color:var(--faint);font-size:.85rem;padding:22px 0;text-align:center}
+/* ---------- Progress ---------- */
+.pbar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:8px}
+.pbar i{display:block;height:100%;border-radius:99px;background:var(--c,var(--violet));transition:.4s}
+/* ---------- Dashboard ---------- */
+.dash-grid{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.ring-wrap{display:flex;align-items:center;gap:18px}
+.ring{transform:rotate(-90deg)}
+.ring .track{stroke:var(--surface2)}
+.ring .prog{stroke-linecap:round;transition:stroke-dashoffset .6s}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+/* ---------- Journal ---------- */
+.moods{display:flex;gap:8px}
+.mood{font-size:1.3rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px 10px;cursor:pointer;transition:.15s;filter:grayscale(.6);opacity:.7}
+.mood:hover{filter:none;opacity:1}
+.mood.sel{filter:none;opacity:1;border-color:var(--pink);background:rgba(244,114,182,.12)}
+.jentry{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px}
+.jentry .jh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.jentry .jd{font-size:.75rem;color:var(--muted)}
+.jentry .jt{font-weight:700;font-size:1rem;flex:1}
+.jentry p{color:#C6CBDA;font-size:.9rem;line-height:1.65;white-space:pre-wrap}
+/* ---------- Bills ---------- */
+.bill-paid{opacity:.45}
+.chk{width:19px;height:19px;accent-color:var(--sky);cursor:pointer}
+/* ---------- Modal ---------- */
+.overlay{position:fixed;inset:0;background:rgba(5,7,10,.7);backdrop-filter:blur(4px);display:none;place-items:center;z-index:50}
+.overlay.open{display:grid}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;width:min(420px,92vw)}
+.modal h3{margin-bottom:18px;font-size:1.1rem}
+.modal .field{margin-bottom:14px}
+.modal input{width:100%}
+/* ---------- Responsive ---------- */
+.menu-toggle{display:none}
+@media(max-width:760px){
+  .sidebar{position:fixed;z-index:40;transform:translateX(-100%);transition:.25s}
+  .sidebar.open{transform:none}
+  .main{padding:22px 18px 60px}
+  .menu-toggle{display:inline-flex;position:fixed;top:14px;right:14px;z-index:41;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:1.1rem}
+}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:99px}
+</style>
+</head>
+<body>
+<div id="pinGate" style="position:fixed;inset:0;background:#0B0D12;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#8B7CF6,#38BDF8);display:grid;place-items:center;font-weight:800;font-size:24px;color:#0B0D12">&#9680;</div>
+  <div style="font-weight:700;font-size:1.1rem;color:#E7EAF2">Life Hub</div>
+  <div style="color:#8A93A8;font-size:.85rem">Enter your 4-digit PIN</div>
+  <input id="pinInput" type="password" inputmode="numeric" maxlength="4" autocomplete="off" style="font-size:1.6rem;text-align:center;letter-spacing:.4em;width:170px;background:#181C27;border:1px solid #1F2534;border-radius:12px;color:#E7EAF2;padding:10px">
+  <div id="pinErr" style="color:#F87171;font-size:.8rem;height:1em"></div>
+</div>
+<script>
+(function(){
+  var HASH="c51f4d33c1386a4db832968541c276988b92b7c8f57d305ba88ea543f76db5b4";
+  if(sessionStorage.getItem("lh_ok")==="1"){document.getElementById("pinGate").style.display="none";return;}
+  var inp=document.getElementById("pinInput");
+  function check(){
+    if(inp.value.length!==4) return;
+    crypto.subtle.digest("SHA-256",new TextEncoder().encode(inp.value)).then(function(buf){
+      var hex=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0")}).join("");
+      if(hex===HASH){sessionStorage.setItem("lh_ok","1");document.getElementById("pinGate").style.display="none";}
+      else{document.getElementById("pinErr").textContent="Wrong PIN";inp.value="";}
+    });
+  }
+  inp.addEventListener("input",check);
+  setTimeout(function(){inp.focus()},150);
+})();
+</script>
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark">◐</div><div><b>Life Hub</b><span>personal assistant</span></div></div>
+    <button class="nav-btn active" data-page="dash" style="--accent:var(--violet)"><span class="ico">▦</span>Dashboard</button>
+    <button class="nav-btn" data-page="sleep" style="--accent:var(--violet)"><span class="ico">☾</span>Sleep</button>
+    <button class="nav-btn" data-page="fitness" style="--accent:var(--green)"><span class="ico">➜</span>Fitness</button>
+    <button class="nav-btn" data-page="nutrition" style="--accent:var(--amber)"><span class="ico">◉</span>Nutrition</button>
+    <button class="nav-btn" data-page="finance" style="--accent:var(--sky)"><span class="ico">$</span>Finances</button>
+    <button class="nav-btn" data-page="journal" style="--accent:var(--pink)"><span class="ico">✎</span>Journal</button>
+    <div class="foot">
+      <button class="tiny-btn" onclick="openGoals()">⚙ Goals & Targets</button>
+      <button class="tiny-btn" onclick="exportData()">↓ Backup data</button>
+      <button class="tiny-btn" onclick="document.getElementById('importFile').click()">↑ Restore backup</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="page visible" id="page-dash">
+      <div class="page-head"><div><h1 id="greeting">Hello</h1><div class="sub" id="dashDate"></div></div></div>
+      <div class="grid dash-grid" id="dashCards"></div>
+      <div class="two-col" style="margin-top:16px">
+        <div class="card"><h2>Steps · last 7 days</h2><div id="dashStepsChart"></div></div>
+        <div class="card"><h2>Sleep · last 7 days</h2><div id="dashSleepChart"></div></div>
+      </div>
+      <div class="card" style="margin-top:16px"><h2>Latest journal entry</h2><div id="dashJournal"></div></div>
+    </section>
+
+    <!-- ============ SLEEP ============ -->
+    <section class="page" id="page-sleep" style="--accent:var(--violet)">
+      <div class="page-head"><div><h1>Sleep</h1><div class="sub">Track your rest and quality</div></div></div>
+      <div class="grid stats" id="sleepStats"></div>
+      <div class="card" style="margin-bottom:16px">
+        <h2>Log sleep</h2>
+        <div class="form-row">
+          <div class="field"><label>Date (woke up)</label><input type="date" id="slDate"></div>
+          <div class="field"><label>Hours slept</label><input type="number" id="slHours" step="0.25" min="0" max="24" placeholder="7.5" style="width:110px"></div>
+          <div class="field"><label>Quality</label>
+            <select id="slQual"><option value="5">★★★★★ Great</option><option value="4" selected>★★★★ Good</option><option value="3">★★★ Okay</option><option value="2">★★ Poor</option><option value="1">★ Awful</option></select></div>
+          <button class="btn" onclick="addSleep()">Add</button>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card"><h2>Last 14 nights</h2><div id="sleepChart"></div></div>
+        <div class="card"><h2>Recent logs</h2><div class="list" id="sleepList"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ FITNESS ============ -->
+    <section class="page" id="page-fitness" style="--accent:var(--green)">
+      <div class="page-head"><div><h1>Fitness</h1><div class="sub">Daily steps & movement</div></div></div>
+      <div class="grid stats" id="fitStats"></div>
+      <div class="card" style="margin-bottom:16px">
+        <h2>Log steps</h2>
+        <div class="form-row">
+          <div class="field"><label>Date</label><input type="date" id="stDate"></div>
+          <div class="field"><label>Steps</label><input type="number" id="stCount" min="0" placeholder="10000" style="width:140px"></div>
+          <button class="btn" onclick="addSteps()">Save</button>
+        </div>
+        <div class="sub" style="margin-top:10px">Logging the same date again replaces that day's count.</div>
+      </div>
+      <div class="two-col">
+        <div class="card"><h2>Last 14 days</h2><div id="stepsChart"></div></div>
+        <div class="card"><h2>Recent logs</h2><div class="list" id="stepsList"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ NUTRITION ============ -->
+    <section class="page" id="page-nutrition" style="--accent:var(--amber)">
+      <div class="page-head"><div><h1>Nutrition</h1><div class="sub">Meals, calories & macros</div></div></div>
+      <div class="grid stats" id="nutStats"></div>
+      <div class="card" style="margin-bottom:16px">
+        <h2>Log a meal</h2>
+        <div class="form-row">
+          <div class="field"><label>Date</label><input type="date" id="mlDate"></div>
+          <div class="field"><label>Meal</label><select id="mlType"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option></select></div>
+          <div class="field" style="flex:1;min-width:150px"><label>Food</label><input type="text" id="mlName" placeholder="Chicken & rice"></div>
+          <div class="field"><label>Calories</label><input type="number" id="mlCal" min="0" placeholder="550" style="width:95px"></div>
+          <div class="field"><label>Protein g</label><input type="number" id="mlPro" min="0" placeholder="40" style="width:85px"></div>
+          <div class="field"><label>Carbs g</label><input type="number" id="mlCarb" min="0" placeholder="60" style="width:85px"></div>
+          <div class="field"><label>Fat g</label><input type="number" id="mlFat" min="0" placeholder="15" style="width:85px"></div>
+          <button class="btn" onclick="addMeal()">Add</button>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card"><h2>Calories · last 7 days</h2><div id="calChart"></div></div>
+        <div class="card"><h2>Today's meals</h2><div class="list" id="mealList"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ FINANCE ============ -->
+    <section class="page" id="page-finance" style="--accent:var(--sky)">
+      <div class="page-head">
+        <div><h1>Finances</h1><div class="sub">Spending, bills & yearly totals — AUD</div></div>
+        <div class="field"><label>Year</label><select id="finYear" onchange="renderFinance()"></select></div>
+      </div>
+      <div class="grid stats" id="finStats"></div>
+      <div class="card" style="margin-bottom:16px">
+        <h2>Add transaction</h2>
+        <div class="form-row">
+          <div class="field"><label>Date</label><input type="date" id="txDate"></div>
+          <div class="field"><label>Type</label><select id="txType"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+          <div class="field" style="flex:1;min-width:140px"><label>Description</label><input type="text" id="txDesc" placeholder="Groceries at Woolies"></div>
+          <div class="field"><label>Category</label>
+            <select id="txCat"><option>Groceries</option><option>Rent / Mortgage</option><option>Utilities</option><option>Transport</option><option>Eating out</option><option>Entertainment</option><option>Health</option><option>Shopping</option><option>Subscriptions</option><option>Salary</option><option>Other</option></select></div>
+          <div class="field"><label>Amount $</label><input type="number" id="txAmt" step="0.01" min="0" placeholder="85.50" style="width:110px"></div>
+          <button class="btn" onclick="addTx()">Add</button>
+        </div>
+      </div>
+      <div class="two-col" style="margin-bottom:16px">
+        <div class="card"><h2>Monthly spend · <span id="finYearLbl"></span></h2><div id="finChart"></div></div>
+        <div class="card"><h2>This month by category</h2><div id="catBreakdown"></div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <h2>Recurring bills</h2>
+          <div class="form-row" style="margin-bottom:12px">
+            <div class="field" style="flex:1;min-width:120px"><label>Bill</label><input type="text" id="blName" placeholder="Electricity"></div>
+            <div class="field"><label>Amount $</label><input type="number" id="blAmt" step="0.01" min="0" placeholder="120" style="width:100px"></div>
+            <div class="field"><label>Frequency</label><select id="blFreq" onchange="$('blDayField').style.display=this.value==='monthly'?'':'none';$('blNextField').style.display=this.value==='monthly'?'none':''"><option value="monthly">Monthly</option><option value="fortnightly">Fortnightly</option><option value="weekly">Weekly</option></select></div>
+            <div class="field" id="blDayField"><label>Due day</label><input type="number" id="blDay" min="1" max="31" placeholder="15" style="width:80px"></div>
+            <div class="field" id="blNextField" style="display:none"><label>Next due</label><input type="date" id="blNext"></div>
+            <div class="field"><label>Category</label><select id="blCat"><option>Utilities</option><option>Rent / Mortgage</option><option>Groceries</option><option>Subscriptions</option><option>Health</option><option>Transport</option><option>Other</option></select></div>
+            <button class="btn" onclick="addBill()">Add</button>
+          </div>
+          <div class="sub" style="margin-bottom:6px">Monthly bills: tick when paid. Fortnightly bills: hit "Paid ✓" — it logs the expense and rolls the due date forward 14 days.</div>
+          <div class="list" id="billList"></div>
+        </div>
+        <div class="card"><h2>Recent transactions</h2><div class="list" id="txList"></div></div>
+      </div>
+    </section>
+
+    <!-- ============ JOURNAL ============ -->
+    <section class="page" id="page-journal" style="--accent:var(--pink)">
+      <div class="page-head"><div><h1>Journal</h1><div class="sub">A private space for your thoughts</div></div></div>
+      <div class="card" style="margin-bottom:20px">
+        <h2>New entry</h2>
+        <div class="form-row" style="margin-bottom:12px">
+          <div class="field" style="flex:1;min-width:160px"><label>Title (optional)</label><input type="text" id="jTitle" placeholder="Today was..."></div>
+          <div class="field"><label>Mood</label>
+            <div class="moods" id="moods">
+              <button class="mood" data-m="😄">😄</button><button class="mood" data-m="🙂">🙂</button><button class="mood" data-m="😐">😐</button><button class="mood" data-m="😔">😔</button><button class="mood" data-m="😣">😣</button>
+            </div></div>
+        </div>
+        <textarea id="jText" rows="5" placeholder="Write freely..."></textarea>
+        <div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn" onclick="addJournal()">Save entry</button></div>
+      </div>
+      <div class="form-row" style="margin-bottom:14px">
+        <input type="search" id="jSearch" placeholder="Search entries..." style="flex:1" oninput="renderJournal()">
+      </div>
+      <div id="journalList"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Goals modal -->
+<div class="overlay" id="goalsModal">
+  <div class="modal">
+    <h3>Goals & Targets</h3>
+    <div class="field"><label>Sleep goal (hours / night)</label><input type="number" id="gSleep" step="0.5" min="0"></div>
+    <div class="field"><label>Daily steps goal</label><input type="number" id="gSteps" min="0"></div>
+    <div class="field"><label>Daily calorie target</label><input type="number" id="gCal" min="0"></div>
+    <div class="field"><label>Monthly spending budget ($ AUD)</label><input type="number" id="gBudget" min="0"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+      <button class="btn solid" onclick="closeGoals()">Cancel</button>
+      <button class="btn" onclick="saveGoals()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="life-hub-data.js"></script>
+<script>
+'use strict'; /* Life Hub v1.2 */
+/* ================= Store ================= */
+const DEFAULTS = {sleep:[],steps:[],meals:[],tx:[],bills:[],journal:[],goals:{sleep:8,steps:10000,cal:2200,budget:2500}};
+const clone = o => JSON.parse(JSON.stringify(o));
+let DB = load();
+function load(){
+  try{ const raw = localStorage.getItem('lifehub'); if(!raw) return clone(DEFAULTS);
+    const d = JSON.parse(raw); return Object.assign(clone(DEFAULTS), d, {goals:Object.assign({},DEFAULTS.goals,d.goals||{})});
+  }catch(e){ return clone(DEFAULTS); }
+}
+function save(){ localStorage.setItem('lifehub', JSON.stringify(DB)); }
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ================= Helpers ================= */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,'0');
+const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
+const monthKey = ds => ds.slice(0,7);
+const AUD = new Intl.NumberFormat('en-AU',{style:'currency',currency:'AUD'});
+const fmt$ = n => AUD.format(n);
+const fmtN = n => n.toLocaleString('en-AU');
+function niceDate(ds){ return new Date(ds+'T12:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'}); }
+function lastNDates(n){ const out=[]; const d=new Date(); for(let i=n-1;i>=0;i--){ const x=new Date(d); x.setDate(d.getDate()-i); out.push(x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate())); } return out; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* Bar chart: items = [{label,value,title}] */
+function barChart(el, items, color, fmt){
+  fmt = fmt || (v=>v);
+  const max = Math.max(...items.map(i=>i.value), 1);
+  el.innerHTML = '<div class="chart">'+items.map(i=>{
+    const h = Math.round(i.value/max*100);
+    return `<div class="col"><div class="cv">${i.value? fmt(i.value):''}</div>
+      <div class="bar ${i.value?'on':''}" style="--c:${color};height:${Math.max(h,3)}%"></div>
+      <div class="cl">${i.label}</div></div>`;
+  }).join('')+'</div>';
+}
+
+/* ================= Navigation ================= */
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('visible'));
+  $('page-'+b.dataset.page).classList.add('visible');
+  document.querySelector('.sidebar').classList.remove('open');
+  renderAll();
+}));
+
+/* ================= Sleep ================= */
+function addSleep(){
+  const date=$('slDate').value, hours=parseFloat($('slHours').value);
+  if(!date || !(hours>0)) return alert('Enter a date and hours slept.');
+  DB.sleep = DB.sleep.filter(s=>s.date!==date);
+  DB.sleep.push({id:uid(),date,hours,quality:+$('slQual').value});
+  save(); $('slHours').value=''; renderAll();
+}
+function renderSleep(){
+  const goal = DB.goals.sleep;
+  const days = lastNDates(7);
+  const week = DB.sleep.filter(s=>days.includes(s.date));
+  const avg = week.length ? week.reduce((a,s)=>a+s.hours,0)/week.length : 0;
+  const last = [...DB.sleep].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const qAvg = week.length ? week.reduce((a,s)=>a+s.quality,0)/week.length : 0;
+  $('sleepStats').innerHTML = `
+    <div class="card stat"><div class="lbl">Last night</div><div class="val accent-violet">${last?last.hours+'<small> hrs</small>':'—'}</div><div class="hint">${last?niceDate(last.date):'no logs yet'}</div></div>
+    <div class="card stat"><div class="lbl">7-day average</div><div class="val">${avg?avg.toFixed(1):'—'}<small> hrs</small></div><div class="hint">goal ${goal} hrs</div></div>
+    <div class="card stat"><div class="lbl">Avg quality</div><div class="val">${qAvg?'★'.repeat(Math.round(qAvg)):'—'}</div><div class="hint">${qAvg?qAvg.toFixed(1)+' / 5':''}</div></div>
+    <div class="card stat"><div class="lbl">Goal met</div><div class="val accent-green">${week.filter(s=>s.hours>=goal).length}<small> / ${week.length||0} nights</small></div><div class="hint">this week</div></div>`;
+  const items = lastNDates(14).map(d=>{ const s=DB.sleep.find(x=>x.date===d); return {label:d.slice(8), value:s?s.hours:0}; });
+  barChart($('sleepChart'), items, 'var(--violet)', v=>v);
+  const logs=[...DB.sleep].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+  $('sleepList').innerHTML = logs.length ? logs.map(s=>`
+    <div class="row"><div class="grow"><div class="t">${s.hours} hrs <span class="pill">${'★'.repeat(s.quality)}</span></div><div class="d">${niceDate(s.date)}</div></div>
+    <button class="del" onclick="delItem('sleep','${s.id}')">✕</button></div>`).join('') : '<div class="empty">No sleep logged yet — add last night above.</div>';
+}
+
+/* ================= Fitness ================= */
+function addSteps(){
+  const date=$('stDate').value, count=parseInt($('stCount').value);
+  if(!date || !(count>=0)) return alert('Enter a date and step count.');
+  DB.steps = DB.steps.filter(s=>s.date!==date);
+  DB.steps.push({id:uid(),date,count});
+  save(); $('stCount').value=''; renderAll();
+}
+function renderFitness(){
+  const goal=DB.goals.steps;
+  const today = DB.steps.find(s=>s.date===todayStr());
+  const days7 = lastNDates(7);
+  const week = DB.steps.filter(s=>days7.includes(s.date));
+  const avg = week.length ? Math.round(week.reduce((a,s)=>a+s.count,0)/week.length) : 0;
+  let streak=0; const dates=lastNDates(60).reverse();
+  for(const d of dates){ if(d===todayStr() && !DB.steps.find(s=>s.date===d&&s.count>=goal)) continue;
+    const hit=DB.steps.find(s=>s.date===d&&s.count>=goal); if(hit) streak++; else break; }
+  const best = DB.steps.length? Math.max(...DB.steps.map(s=>s.count)) : 0;
+  $('fitStats').innerHTML = `
+    <div class="card stat"><div class="lbl">Today</div><div class="val accent-green">${today?fmtN(today.count):'—'}</div><div class="hint">goal ${fmtN(goal)}</div>
+      <div class="pbar"><i style="--c:var(--green);width:${today?Math.min(100,today.count/goal*100):0}%"></i></div></div>
+    <div class="card stat"><div class="lbl">7-day average</div><div class="val">${avg?fmtN(avg):'—'}</div><div class="hint">steps / day</div></div>
+    <div class="card stat"><div class="lbl">Goal streak</div><div class="val accent-amber">${streak}<small> days</small></div><div class="hint">hitting ${fmtN(goal)}+</div></div>
+    <div class="card stat"><div class="lbl">Personal best</div><div class="val">${best?fmtN(best):'—'}</div><div class="hint">single day</div></div>`;
+  const items = lastNDates(14).map(d=>{ const s=DB.steps.find(x=>x.date===d); return {label:d.slice(8), value:s?s.count:0}; });
+  barChart($('stepsChart'), items, 'var(--green)', v=> v>=1000? (v/1000).toFixed(1)+'k' : v);
+  const logs=[...DB.steps].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10);
+  $('stepsList').innerHTML = logs.length ? logs.map(s=>`
+    <div class="row"><div class="grow"><div class="t">${fmtN(s.count)} steps ${s.count>=goal?'<span class="pill" style="color:var(--green)">goal ✓</span>':''}</div><div class="d">${niceDate(s.date)}</div></div>
+    <button class="del" onclick="delItem('steps','${s.id}')">✕</button></div>`).join('') : '<div class="empty">No steps logged yet.</div>';
+}
+
+/* ================= Nutrition ================= */
+function addMeal(){
+  const date=$('mlDate').value, name=$('mlName').value.trim(), cal=parseInt($('mlCal').value);
+  if(!date || !name || !(cal>=0)) return alert('Enter date, food and calories.');
+  DB.meals.push({id:uid(),date,meal:$('mlType').value,name,cal,
+    pro:+$('mlPro').value||0,carb:+$('mlCarb').value||0,fat:+$('mlFat').value||0});
+  save(); ['mlName','mlCal','mlPro','mlCarb','mlFat'].forEach(i=>$(i).value=''); renderAll();
+}
+function renderNutrition(){
+  const goal=DB.goals.cal, t=todayStr();
+  const today = DB.meals.filter(m=>m.date===t);
+  const sum = k => today.reduce((a,m)=>a+(m[k]||0),0);
+  const cal=sum('cal');
+  $('nutStats').innerHTML = `
+    <div class="card stat"><div class="lbl">Calories today</div><div class="val accent-amber">${fmtN(cal)}<small> / ${fmtN(goal)}</small></div>
+      <div class="pbar"><i style="--c:${cal>goal?'var(--red)':'var(--amber)'};width:${Math.min(100,cal/goal*100)}%"></i></div></div>
+    <div class="card stat"><div class="lbl">Protein</div><div class="val">${sum('pro')}<small> g</small></div><div class="hint">today</div></div>
+    <div class="card stat"><div class="lbl">Carbs</div><div class="val">${sum('carb')}<small> g</small></div><div class="hint">today</div></div>
+    <div class="card stat"><div class="lbl">Fat</div><div class="val">${sum('fat')}<small> g</small></div><div class="hint">today</div></div>`;
+  const items = lastNDates(7).map(d=>({label:niceDate(d).slice(0,3), value:DB.meals.filter(m=>m.date===d).reduce((a,m)=>a+m.cal,0)}));
+  barChart($('calChart'), items, 'var(--amber)', v=>fmtN(v));
+  $('mealList').innerHTML = today.length ? today.map(m=>`
+    <div class="row"><div class="grow"><div class="t">${esc(m.name)} <span class="pill">${m.meal}</span></div>
+    <div class="d">${m.cal} kcal · P${m.pro} C${m.carb} F${m.fat}</div></div>
+    <button class="del" onclick="delItem('meals','${m.id}')">✕</button></div>`).join('') : '<div class="empty">Nothing logged today.</div>';
+}
+
+/* ================= Finance ================= */
+function addTx(){
+  const date=$('txDate').value, desc=$('txDesc').value.trim(), amt=parseFloat($('txAmt').value);
+  if(!date || !desc || !(amt>0)) return alert('Enter date, description and amount.');
+  DB.tx.push({id:uid(),date,desc,amount:amt,cat:$('txCat').value,type:$('txType').value});
+  save(); $('txDesc').value=''; $('txAmt').value=''; renderAll();
+}
+const FREQ_DAYS={weekly:7,fortnightly:14};
+function addDays(ds,n){ const d=new Date(ds+'T12:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function addBill(){
+  const name=$('blName').value.trim(), amt=parseFloat($('blAmt').value), freq=$('blFreq').value, cat=$('blCat').value;
+  if(!name || !(amt>0)) return alert('Enter bill name and amount.');
+  if(freq==='monthly'){
+    const day=parseInt($('blDay').value);
+    if(!(day>=1&&day<=31)) return alert('Enter a due day (1-31).');
+    DB.bills.push({id:uid(),name,amount:amt,freq,cat,day,paid:{}});
+  } else {
+    const next=$('blNext').value || todayStr();
+    DB.bills.push({id:uid(),name,amount:amt,freq,cat,nextDue:next,paid:{}});
+  }
+  save(); $('blName').value='';$('blAmt').value='';$('blDay').value='';$('blNext').value=''; renderAll();
+}
+function toggleBill(id){
+  const b=DB.bills.find(x=>x.id===id); if(!b) return;
+  const mk=todayStr().slice(0,7);
+  if(b.paid[mk]){ delete b.paid[mk]; DB.tx=DB.tx.filter(t=>t.id!=='bill_'+id+'_'+mk); }
+  else { b.paid[mk]=true;
+    DB.tx.push({id:'bill_'+id+'_'+mk,date:todayStr(),desc:b.name+' (bill)',amount:b.amount,cat:b.cat||'Utilities',type:'expense'}); }
+  save(); renderAll();
+}
+function payBill(id){
+  const b=DB.bills.find(x=>x.id===id); if(!b || !FREQ_DAYS[b.freq]) return;
+  DB.tx.push({id:uid(),date:todayStr(),desc:b.name+' ('+b.freq+')',amount:b.amount,cat:b.cat||'Other',type:'expense'});
+  b.nextDue=addDays(b.nextDue||todayStr(), FREQ_DAYS[b.freq]);
+  save(); renderAll();
+}
+function renderFinance(){
+  // year selector
+  const years=[...new Set(DB.tx.map(t=>t.date.slice(0,4)))]; const cy=String(new Date().getFullYear());
+  if(!years.includes(cy)) years.push(cy); years.sort().reverse();
+  const sel=$('finYear'); const prev=sel.value;
+  sel.innerHTML=years.map(y=>`<option>${y}</option>`).join('');
+  sel.value = years.includes(prev)?prev:cy;
+  const year=sel.value; $('finYearLbl').textContent=year;
+
+  const mk=todayStr().slice(0,7);
+  const inYear=DB.tx.filter(t=>t.date.startsWith(year));
+  const spendYear=inYear.filter(t=>t.type==='expense').reduce((a,t)=>a+t.amount,0);
+  const incomeYear=inYear.filter(t=>t.type==='income').reduce((a,t)=>a+t.amount,0);
+  const monthTx=DB.tx.filter(t=>monthKey(t.date)===mk);
+  const spendMonth=monthTx.filter(t=>t.type==='expense').reduce((a,t)=>a+t.amount,0);
+  const budget=DB.goals.budget;
+  const now=new Date(); const eom=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(new Date(now.getFullYear(),now.getMonth()+1,0).getDate());
+  let billsDue=0, billsDueN=0;
+  DB.bills.forEach(b=>{
+    if(FREQ_DAYS[b.freq]){ let d=b.nextDue||todayStr(), guard=0;
+      while(d<=eom && guard++<10){ billsDue+=b.amount; billsDueN++; d=addDays(d,FREQ_DAYS[b.freq]); } }
+    else if(!b.paid[mk]){ billsDue+=b.amount; billsDueN++; }
+  });
+
+  $('finStats').innerHTML = `
+    <div class="card stat"><div class="lbl">Spent this month</div><div class="val accent-sky">${fmt$(spendMonth)}</div><div class="hint">budget ${fmt$(budget)}</div>
+      <div class="pbar"><i style="--c:${spendMonth>budget?'var(--red)':'var(--sky)'};width:${Math.min(100,spendMonth/budget*100)}%"></i></div></div>
+    <div class="card stat"><div class="lbl">Bills still due</div><div class="val ${billsDue?'accent-amber':'accent-green'}">${fmt$(billsDue)}</div><div class="hint">${billsDueN} payment(s) left this month</div></div>
+    <div class="card stat"><div class="lbl">${year} total spend</div><div class="val accent-red">${fmt$(spendYear)}</div><div class="hint">all expenses</div></div>
+    <div class="card stat"><div class="lbl">${year} net</div><div class="val ${incomeYear-spendYear>=0?'accent-green':'accent-red'}">${fmt$(incomeYear-spendYear)}</div><div class="hint">income ${fmt$(incomeYear)}</div></div>`;
+
+  // monthly chart for selected year
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const items=months.map((m,i)=>{ const k=year+'-'+pad(i+1);
+    return {label:m, value:Math.round(DB.tx.filter(t=>t.type==='expense'&&monthKey(t.date)===k).reduce((a,t)=>a+t.amount,0))}; });
+  barChart($('finChart'), items, 'var(--sky)', v=>'$'+(v>=1000?(v/1000).toFixed(1)+'k':v));
+
+  // category breakdown current month
+  const cats={};
+  monthTx.filter(t=>t.type==='expense').forEach(t=>cats[t.cat]=(cats[t.cat]||0)+t.amount);
+  const entries=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const maxc=entries.length?entries[0][1]:1;
+  $('catBreakdown').innerHTML = entries.length ? entries.map(([c,v])=>`
+    <div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:.85rem"><span>${esc(c)}</span><b>${fmt$(v)}</b></div>
+    <div class="pbar"><i style="--c:var(--sky);width:${v/maxc*100}%"></i></div></div>`).join('') : '<div class="empty">No expenses this month yet.</div>';
+
+  // bills
+  const sortKey = b => FREQ_DAYS[b.freq] ? (b.nextDue||'9999') : mk+'-'+pad(b.day||31);
+  $('billList').innerHTML = (DB.bills.length ? [...DB.bills].sort((a,b)=>sortKey(a).localeCompare(sortKey(b))).map(b=>{
+    if(FREQ_DAYS[b.freq]){
+      const overdue = (b.nextDue||todayStr()) < todayStr();
+      return `<div class="row">
+        <div class="grow"><div class="t">${esc(b.name)} <span class="pill">${b.freq}</span>${overdue?' <span class="pill" style="color:var(--red)">overdue</span>':''}</div>
+        <div class="d">next due ${niceDate(b.nextDue||todayStr())} · ${esc(b.cat||'Other')}</div></div>
+        <div class="amt">${fmt$(b.amount)}</div>
+        <button class="btn solid" style="padding:6px 12px;font-size:.72rem" onclick="payBill('${b.id}')">Paid ✓</button>
+        <button class="del" onclick="delItem('bills','${b.id}')">✕</button></div>`;
+    }
+    const paid=!!b.paid[mk];
+    return `<div class="row ${paid?'bill-paid':''}">
+      <input type="checkbox" class="chk" ${paid?'checked':''} onchange="toggleBill('${b.id}')">
+      <div class="grow"><div class="t">${esc(b.name)} <span class="pill">monthly</span></div><div class="d">due day ${b.day} · ${esc(b.cat||'Utilities')}</div></div>
+      <div class="amt">${fmt$(b.amount)}</div>
+      <button class="del" onclick="delItem('bills','${b.id}')">✕</button></div>`;
+  }).join('') : '<div class="empty">No recurring bills added.</div>')
+  + (DB.bills.length ? `<div class="row" style="border-top:1px solid var(--border);border-bottom:none"><div class="grow"><div class="d">Average monthly commitment</div></div><div class="amt accent-sky">${fmt$(DB.bills.reduce((a,b)=>a+(b.freq==='weekly'?b.amount*52/12:b.freq==='fortnightly'?b.amount*26/12:b.amount),0))}</div></div>` : '');
+
+  // recent tx
+  const recent=[...DB.tx].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12);
+  $('txList').innerHTML = recent.length ? recent.map(t=>`
+    <div class="row"><div class="grow"><div class="t">${esc(t.desc)} <span class="pill">${esc(t.cat)}</span></div><div class="d">${niceDate(t.date)}</div></div>
+    <div class="amt ${t.type==='income'?'accent-green':''}">${t.type==='income'?'+':'−'}${fmt$(t.amount)}</div>
+    <button class="del" onclick="delItem('tx','${t.id}')">✕</button></div>`).join('') : '<div class="empty">No transactions yet.</div>';
+}
+
+/* ================= Journal ================= */
+let selMood='🙂';
+document.querySelectorAll('.mood').forEach(m=>m.addEventListener('click',()=>{
+  document.querySelectorAll('.mood').forEach(x=>x.classList.remove('sel'));
+  m.classList.add('sel'); selMood=m.dataset.m;
+}));
+document.querySelectorAll('.mood')[1].classList.add('sel');
+function addJournal(){
+  const text=$('jText').value.trim();
+  if(!text) return alert('Write something first.');
+  DB.journal.push({id:uid(),ts:Date.now(),title:$('jTitle').value.trim(),mood:selMood,text});
+  save(); $('jText').value=''; $('jTitle').value=''; renderAll();
+}
+function renderJournal(){
+  const q=($('jSearch').value||'').toLowerCase();
+  const entries=[...DB.journal].sort((a,b)=>b.ts-a.ts)
+    .filter(e=>!q || e.text.toLowerCase().includes(q) || (e.title||'').toLowerCase().includes(q));
+  $('journalList').innerHTML = entries.length ? entries.map(e=>`
+    <div class="jentry"><div class="jh"><span style="font-size:1.2rem">${e.mood}</span>
+      <div class="jt">${esc(e.title)||'Untitled'}</div>
+      <div class="jd">${new Date(e.ts).toLocaleString('en-AU',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})}</div>
+      <button class="del" onclick="delItem('journal','${e.id}')">✕</button></div>
+      <p>${esc(e.text)}</p></div>`).join('') : '<div class="empty">No entries'+(q?' match your search':' yet — write your first one above')+'.</div>';
+}
+
+/* ================= Dashboard ================= */
+function renderDash(){
+  const h=new Date().getHours();
+  $('greeting').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', Ethan';
+  const lm=DB.liveMeta;
+  $('dashDate').textContent=new Date().toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+    +(lm&&lm.updated?' · ⟳ synced '+lm.updated+(lm.weight?' · '+lm.weight+' kg':'')+(lm.restingHR?' · RHR '+lm.restingHR:'')+(lm.streak?' · '+lm.streak+'-day step streak 🔥':''):'')
+    +(DB.pay&&DB.pay.next?' · 💰 next pay '+niceDate(DB.pay.next):'');
+  const t=todayStr(), mk=t.slice(0,7);
+  const sleep=[...DB.sleep].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const steps=DB.steps.find(s=>s.date===t);
+  const cal=DB.meals.filter(m=>m.date===t).reduce((a,m)=>a+m.cal,0);
+  const spend=DB.tx.filter(x=>x.type==='expense'&&monthKey(x.date)===mk).reduce((a,x)=>a+x.amount,0);
+  const g=DB.goals;
+  const pct=steps?Math.min(1,steps.count/g.steps):0;
+  const C=2*Math.PI*34;
+  $('dashCards').innerHTML=`
+    <div class="card stat"><div class="ring-wrap">
+      <svg class="ring" width="84" height="84"><circle class="track" cx="42" cy="42" r="34" fill="none" stroke-width="9"/>
+      <circle class="prog" cx="42" cy="42" r="34" fill="none" stroke="var(--green)" stroke-width="9" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg>
+      <div><div class="lbl">Steps today</div><div class="val accent-green">${steps?fmtN(steps.count):'0'}</div><div class="hint">${Math.round(pct*100)}% of ${fmtN(g.steps)}</div></div></div></div>
+    <div class="card stat"><div class="lbl">Last sleep</div><div class="val accent-violet">${sleep?sleep.hours+'<small> hrs</small>':'—'}</div><div class="hint">${sleep?niceDate(sleep.date):'log your first night'}</div>
+      <div class="pbar"><i style="--c:var(--violet);width:${sleep?Math.min(100,sleep.hours/g.sleep*100):0}%"></i></div></div>
+    <div class="card stat"><div class="lbl">Calories today</div><div class="val accent-amber">${fmtN(cal)}<small> / ${fmtN(g.cal)}</small></div>
+      <div class="pbar"><i style="--c:${cal>g.cal?'var(--red)':'var(--amber)'};width:${Math.min(100,cal/g.cal*100)}%"></i></div></div>
+    <div class="card stat"><div class="lbl">Spent this month</div><div class="val accent-sky">${fmt$(spend)}</div><div class="hint">budget ${fmt$(g.budget)}</div>
+      <div class="pbar"><i style="--c:${spend>g.budget?'var(--red)':'var(--sky)'};width:${Math.min(100,spend/g.budget*100)}%"></i></div></div>`;
+  barChart($('dashStepsChart'), lastNDates(7).map(d=>{const s=DB.steps.find(x=>x.date===d);return{label:niceDate(d).slice(0,3),value:s?s.count:0}}), 'var(--green)', v=>v>=1000?(v/1000).toFixed(1)+'k':v);
+  barChart($('dashSleepChart'), lastNDates(7).map(d=>{const s=DB.sleep.find(x=>x.date===d);return{label:niceDate(d).slice(0,3),value:s?s.hours:0}}), 'var(--violet)', v=>v);
+  const j=[...DB.journal].sort((a,b)=>b.ts-a.ts)[0];
+  $('dashJournal').innerHTML = j ? `<div class="jh" style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><span style="font-size:1.2rem">${j.mood}</span><b>${esc(j.title)||'Untitled'}</b><span class="jd" style="font-size:.75rem;color:var(--muted)">${new Date(j.ts).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}</span></div><p style="color:#C6CBDA;font-size:.9rem;line-height:1.6">${esc(j.text.length>280?j.text.slice(0,280)+'…':j.text)}</p>` : '<div class="empty">Your latest journal entry will appear here.</div>';
+}
+
+/* ================= Shared ================= */
+function delItem(coll,id){ DB[coll]=DB[coll].filter(x=>x.id!==id); save(); renderAll(); }
+function openGoals(){ const g=DB.goals; $('gSleep').value=g.sleep; $('gSteps').value=g.steps; $('gCal').value=g.cal; $('gBudget').value=g.budget; $('goalsModal').classList.add('open'); }
+function closeGoals(){ $('goalsModal').classList.remove('open'); }
+function saveGoals(){
+  DB.goals={sleep:+$('gSleep').value||8,steps:+$('gSteps').value||10000,cal:+$('gCal').value||2200,budget:+$('gBudget').value||2500};
+  save(); closeGoals(); renderAll();
+}
+$('goalsModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeGoals(); });
+function exportData(){
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(DB,null,2));
+  a.download='lifehub-backup-'+todayStr()+'.json'; a.click();
+}
+function importData(inp){
+  const f=inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result);
+      DB=Object.assign(clone(DEFAULTS), d, {goals:Object.assign({},DEFAULTS.goals,d.goals||{})});
+      save(); renderAll(); alert('Backup restored.'); }catch(e){ alert('Invalid backup file.'); } };
+  r.readAsText(f); inp.value='';
+}
+function renderAll(){ renderDash(); renderSleep(); renderFitness(); renderNutrition(); renderFinance(); renderJournal(); }
+
+/* live sync: merge data from life-hub-data.js (written by Claude) */
+(function syncLive(){
+  if(typeof LIVE==='undefined') return;
+  try{
+    (LIVE.steps||[]).forEach(s=>{ if(!s.date||!(s.count>=0)) return;
+      DB.steps=DB.steps.filter(x=>x.date!==s.date);
+      DB.steps.push({id:'live_st_'+s.date,date:s.date,count:s.count}); });
+    (LIVE.sleep||[]).forEach(s=>{ if(!s.date||!(s.hours>0)) return;
+      DB.sleep=DB.sleep.filter(x=>x.date!==s.date);
+      DB.sleep.push({id:'live_sl_'+s.date,date:s.date,hours:s.hours,quality:s.quality||3}); });
+    (LIVE.meals||[]).forEach(m=>{ DB.meals=DB.meals.filter(x=>!(String(x.id).indexOf('live_ml_')===0&&x.date===m.date)); });
+    (LIVE.meals||[]).forEach((m,i)=>{ if(!m.date||!m.name) return;
+      DB.meals.push({id:'live_ml_'+m.date+'_'+i,date:m.date,meal:m.meal||'Snack',name:m.name,cal:m.cal||0,pro:m.pro||0,carb:m.carb||0,fat:m.fat||0}); });
+    (LIVE.tx||[]).forEach(t=>{ if(!t.key||!t.date||!(t.amount>0)) return;
+      DB.tx=DB.tx.filter(x=>x.id!=='live_tx_'+t.key);
+      DB.tx.push({id:'live_tx_'+t.key,date:t.date,desc:t.desc||'Synced',amount:t.amount,cat:t.cat||'Other',type:t.type==='income'?'income':'expense'}); });
+    if(LIVE.goals) DB.goals=Object.assign({},DB.goals,LIVE.goals);
+    if(LIVE.pay) DB.pay=Object.assign({},LIVE.pay);
+    DB.liveMeta={updated:LIVE.updated||'',weight:LIVE.weight||null,restingHR:LIVE.restingHR||null,streak:LIVE.streak||null};
+    save();
+  }catch(e){}
+})();
+
+/* one-time seed of Ethan's recurring bills (skips any name already present) */
+(function seedBills(){
+  if(DB.seededBillsV1) return;
+  const t=todayStr();
+  const seeds=[
+    {name:'Telstra', amount:75, freq:'monthly', cat:'Utilities', day:15, paid:{}},
+    {name:'Claude', amount:34, freq:'monthly', cat:'Subscriptions', day:1, paid:{}},
+    {name:'Government', amount:100, freq:'monthly', cat:'Other', day:1, paid:{}},
+    {name:'Rent', amount:200, freq:'fortnightly', cat:'Rent / Mortgage', nextDue:t, paid:{}},
+    {name:'Trainer', amount:190, freq:'fortnightly', cat:'Health', nextDue:t, paid:{}},
+    {name:'Milk', amount:34, freq:'weekly', cat:'Groceries', nextDue:t, paid:{}},
+    {name:'Meat', amount:60, freq:'fortnightly', cat:'Groceries', nextDue:t, paid:{}}
+  ];
+  seeds.forEach(s=>{ if(!DB.bills.some(b=>b.name.toLowerCase()===s.name.toLowerCase())) DB.bills.push(Object.assign({id:uid()},s)); });
+  DB.seededBillsV1=true; save();
+})();
+
+/* auto-log fortnightly pay when the date arrives */
+function processPay(){
+  if(!DB.pay||!DB.pay.next||!(DB.pay.amount>0)) return;
+  let guard=0;
+  while(DB.pay.next<=todayStr() && guard++<30){
+    const d=DB.pay.next;
+    DB.tx=DB.tx.filter(x=>x.id!=='pay_'+d && x.id!=='live_tx_pay-'+d);
+    DB.tx.push({id:'pay_'+d,date:d,desc:DB.pay.desc||'Pay day',amount:DB.pay.amount,cat:'Salary',type:'income'});
+    DB.pay.next=addDays(d,DB.pay.every||14);
+  }
+  save();
+}
+
+/* init */
+processPay();
+['slDate','stDate','mlDate','txDate'].forEach(i=>$(i).value=todayStr());
+renderAll();
+</script>
+</body>
+</html>
