@@ -20,7 +20,7 @@ Your personal dashboard, hosted free so you can open it on your phone.
 
 ## Your PIN
 
-**4721** — ask Claude to change it any time (it's baked into index.html as a hash).
+**** — ask Claude to change it any time (it's baked into index.html as a hash).
 
 ## Updating data
 
