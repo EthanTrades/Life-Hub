@@ -699,19 +699,18 @@ function renderAll(){ renderDash(); renderSleep(); renderFitness(); renderNutrit
 
 /* one-time seed of Ethan's recurring bills (skips any name already present) */
 (function seedBills(){
-  if(DB.seededBillsV1) return;
+  if(DB.seededBillsV2) return;
   const t=todayStr();
-  const seeds=[
-    {name:'Telstra', amount:75, freq:'monthly', cat:'Utilities', day:15, paid:{}},
-    {name:'Claude', amount:34, freq:'monthly', cat:'Subscriptions', day:1, paid:{}},
-    {name:'Government', amount:100, freq:'monthly', cat:'Other', day:1, paid:{}},
+  DB.bills=DB.bills.filter(b=>!['government','milk'].includes(b.name.toLowerCase())); const seeds=[
+{name:'Telstra', amount:75, freq:'monthly', cat:'Utilities', day:15, paid:{}},    {name:'Claude', amount:34, freq:'monthly', cat:'Subscriptions', day:1, paid:{}},
+    
     {name:'Rent', amount:200, freq:'fortnightly', cat:'Rent / Mortgage', nextDue:t, paid:{}},
     {name:'Trainer', amount:190, freq:'fortnightly', cat:'Health', nextDue:t, paid:{}},
-    {name:'Milk', amount:34, freq:'weekly', cat:'Groceries', nextDue:t, paid:{}},
+    {name:'Harris Farm', amount:45, freq:'weekly', cat:'Groceries', nextDue:t, paid:{}},
     {name:'Meat', amount:60, freq:'fortnightly', cat:'Groceries', nextDue:t, paid:{}}
   ];
   seeds.forEach(s=>{ if(!DB.bills.some(b=>b.name.toLowerCase()===s.name.toLowerCase())) DB.bills.push(Object.assign({id:uid()},s)); });
-  DB.seededBillsV1=true; save();
+  DB.seededBillsV2=true; save();
 })();
 
 /* auto-log fortnightly pay when the date arrives */
