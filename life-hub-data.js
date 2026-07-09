@@ -1,23 +1,25 @@
-/* Life Hub live data — synced by Claude on 9 Jul 2026.
+/* Life Hub live data — synced by Claude on 10 Jul 2026.
 Sources: Trainerize (Physique Factory) + Strava + Sleep Cycle (via Apple Health).
 Ask Claude to "sync my dashboard" any time to refresh this file. */
 var LIVE = {
-     updated: "9 Jul 2026",
+     updated: "10 Jul 2026",
      weight: 70.9,
-     restingHR: 63,
-     streak: 2,
+     restingHR: 60,
+     streak: 3,
      goals: { cal: 1230 },
      steps: [
           { date: "2026-07-04", count: 6890 },
           { date: "2026-07-05", count: 405 },
           { date: "2026-07-06", count: 13617 },
           { date: "2026-07-07", count: 19023 },
-          { date: "2026-07-09", count: 146 }
+          { date: "2026-07-09", count: 146 },
+          { date: "2026-07-10", count: 173 }
           ],
      sleep: [
           { date: "2026-07-05", hours: 5.6, quality: 3 },
           { date: "2026-07-08", hours: 6.4, quality: 3 },
-          { date: "2026-07-09", hours: 7.1, quality: 3 }
+          { date: "2026-07-09", hours: 7.1, quality: 3 },
+          { date: "2026-07-10", hours: 6.7, quality: 3 }
           ],
      meals: [
           { date: "2026-07-04", meal: "Snack", name: "Trainerize day total (4 meals)", cal: 1302, pro: 130, carb: 113, fat: 38 },
