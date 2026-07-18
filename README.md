@@ -18,9 +18,8 @@ Your personal dashboard, hosted free so you can open it on your phone.
    `https://ethantrades.github.io/Life-Hub/`
 6. Open that link on your phone → **Share → Add to Home Screen** and it behaves like an app.
 
-## Your PIN
 
-**4721** — ask Claude to change it any time (only a hash of it is stored in index.html).
+**** — ask Claude to change it any time (only a hash of it is stored in index.html).
 Note: the PIN locks the app screen, but because the repo is public, the raw
 `life-hub-data.js` file is still readable by anyone who finds the repo itself.
 Keep the link private; don't put anything truly sensitive in the synced data.
